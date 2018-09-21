@@ -1,0 +1,15 @@
+* dired-rifle
+  Run [[https://ranger.github.io/ranger.1.html#RIFLE][rifle(1)]] known from [[https://github.com/ranger/ranger][ranger]] from an Emacs Dired buffer.
+
+** Installation
+
+   Install from MELPA.
+
+   #+BEGIN_EXAMPLE
+     M-x package-install dired-rifle
+   #+END_EXAMPLE
+
+** Usage
+
+   Press =r= to open the current file.  See the =dired-rifle= command
+   documentation for more running options.
