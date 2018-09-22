@@ -36,8 +36,11 @@
 (defun dired-rifle (arg)
   "Call rifle(1) on the currently focused file in dired.
 
-With \\[universal-argument] the output is saved to a buffer named
+With `\\[universal-argument]' the output is saved to a buffer named
 *dired-rifle*.  Otherwise the output is discarded.
+
+With `\\[universal-argument] \\[universal-argument]' the output
+of `rifle -l' is shown, i.e. the programs available via rifle.
 
 With a numeric prefix argument ARG, run ARGth rifle rule
 instead of the default one (0th)"
@@ -51,10 +54,18 @@ instead of the default one (0th)"
         (rule-number (if (integerp arg)
                          arg
                        0)))
-    (call-process "rifle"
-                  nil out-buffer nil
-                  "-p" (int-to-string rule-number)
-                  "--" (dired-get-filename))))
+    (if (equal arg '(16))
+        (call-process "rifle"
+                      nil out-buffer nil
+                      "-l"
+                      "--" (dired-get-filename))
+      (call-process "rifle"
+                    nil out-buffer nil
+                    "-p" (int-to-string rule-number)
+                    "--" (dired-get-filename)))
+    (when (bufferp out-buffer)
+      (with-current-buffer out-buffer
+        (goto-char (point-min))))))
 
 (define-key dired-mode-map (kbd "r") #'dired-rifle)
 
