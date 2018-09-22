@@ -42,6 +42,10 @@ of the matching rules to use.
 
 OUTPUT-BUFFER is the buffer for the rifle output.  If nil, the
 output gets discarded."
+  (when output-buffer
+    (view-buffer-other-window output-buffer
+                              nil
+                              #'kill-buffer-if-not-modified))
   (call-process "rifle"
                 nil (or output-buffer 0) nil
                 "-p" (number-to-string (or program-number 0))
@@ -74,8 +78,6 @@ instead of the default one (0th)"
                            (with-current-buffer
                                (get-buffer-create "*dired-rifle*")
                              (erase-buffer)
-                             (view-buffer-other-window
-                              (current-buffer) nil #'kill-buffer-if-not-modified)
                              (current-buffer))))
           (path (dired-get-filename)))
       (cond
