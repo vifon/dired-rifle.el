@@ -71,14 +71,15 @@ output gets discarded."
 (defun dired-rifle (arg)
   "Call rifle(1) on the currently focused file in dired.
 
-With `\\[universal-argument]' the output is saved to a buffer named
-*dired-rifle*.  Otherwise the output is discarded.
+With `\\[universal-argument]' the output is saved to a buffer
+named *dired-rifle*.
 
 With `\\[universal-argument] \\[universal-argument]' show the
-matching rifle rules for manual selection.
+matching rifle rules for manual selection.  The output is saved
+to a buffer named *dired-rifle*.
 
-With a numeric prefix argument ARG, run ARGth rifle rule
-instead of the default one (0th)"
+With a numeric prefix argument ARG, run ARGth rifle rule instead
+of the default one (0th).  The output is discarded."
   (interactive "P")
   (let ((inhibit-read-only t))
     (let ((output-buffer (when (consp arg)
