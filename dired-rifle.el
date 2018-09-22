@@ -94,7 +94,9 @@ of the default one (0th).  The output is discarded."
                      (replace-regexp-in-string
                       "^\\([0-9]+\\).*" "\\1"
                       (completing-read "Rifle rule: "
-                                       (rifle-get-rules path))))
+                                       (rifle-get-rules path)
+                                       nil
+                                       t)))
                     output-buffer))
        (t
         (rifle-open path arg))))))
