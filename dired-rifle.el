@@ -43,13 +43,20 @@ of the matching rules to use.
 OUTPUT-BUFFER is the buffer for the rifle output.  If nil, the
 output gets discarded."
   (when output-buffer
+    (with-current-buffer
+        (get-buffer-create "*dired-rifle*")
+      (current-buffer)
+      (erase-buffer))
     (view-buffer-other-window output-buffer
                               nil
                               #'kill-buffer-if-not-modified))
   (call-process "rifle"
                 nil (or output-buffer 0) nil
                 "-p" (number-to-string (or program-number 0))
-                "--" path))
+                "--" path)
+  (when output-buffer
+    (with-current-buffer output-buffer
+      (goto-char (point-min)))))
 
 (defun rifle-get-rules (path)
   "Get the matching rifle rules for PATH as a list of strings."
@@ -75,10 +82,7 @@ instead of the default one (0th)"
   (interactive "P")
   (let ((inhibit-read-only t))
     (let ((output-buffer (when (consp arg)
-                           (with-current-buffer
-                               (get-buffer-create "*dired-rifle*")
-                             (erase-buffer)
-                             (current-buffer))))
+                           "*dired-rifle*"))
           (path (dired-get-filename)))
       (cond
        ((equal arg '(4))
@@ -92,10 +96,7 @@ instead of the default one (0th)"
                                        (rifle-get-rules path))))
                     output-buffer))
        (t
-        (rifle-open path arg)))
-      (when (bufferp output-buffer)
-        (with-current-buffer output-buffer
-          (goto-char (point-min)))))))
+        (rifle-open path arg))))))
 
 (define-key dired-mode-map (kbd "r") #'dired-rifle)
 
