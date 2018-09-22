@@ -32,6 +32,30 @@
 
 (require 'dired)
 
+(defun rifle-open (path &optional program-number output-buffer)
+  "Open a file with rifle(1).
+
+PATH is the file to open.
+
+PROGRAM-NUMBER is the argument passed to `rifle -p', i.e. which
+of the matching rules to use.
+
+OUTPUT-BUFFER is the buffer for the rifle output.  If nil, the
+output gets discarded."
+  (call-process "rifle"
+                nil (or output-buffer 0) nil
+                "-p" (number-to-string (or program-number 0))
+                "--" path))
+
+(defun rifle-get-rules (path)
+  "Get the matching rifle rules for PATH as a list of strings."
+  (with-temp-buffer
+    (call-process "rifle"
+                  nil (current-buffer) nil
+                  "-l"
+                  "--" path)
+    (split-string (buffer-string) "\n" t)))
+
 ;;;###autoload
 (defun dired-rifle (arg)
   "Call rifle(1) on the currently focused file in dired.
@@ -39,36 +63,37 @@
 With `\\[universal-argument]' the output is saved to a buffer named
 *dired-rifle*.  Otherwise the output is discarded.
 
-With `\\[universal-argument] \\[universal-argument]' the output
-of `rifle -l' is shown, i.e. the programs available via rifle.
+With `\\[universal-argument] \\[universal-argument]' show the
+matching rifle rules for manual selection.
 
 With a numeric prefix argument ARG, run ARGth rifle rule
 instead of the default one (0th)"
   (interactive "P")
-  (let ((out-buffer (if (consp arg)
-                        (with-current-buffer
-                            (get-buffer-create "*dired-rifle*")
-                          (erase-buffer)
-                          (view-buffer-other-window
-                           (current-buffer) nil #'kill-buffer-if-not-modified)
-                          (current-buffer))
-                      0))
-        (rule-number (if (integerp arg)
-                         arg
-                       0))
-        (inhibit-read-only t))
-    (if (equal arg '(16))
-        (call-process "rifle"
-                      nil out-buffer nil
-                      "-l"
-                      "--" (dired-get-filename))
-      (call-process "rifle"
-                    nil out-buffer nil
-                    "-p" (int-to-string rule-number)
-                    "--" (dired-get-filename)))
-    (when (bufferp out-buffer)
-      (with-current-buffer out-buffer
-        (goto-char (point-min))))))
+  (let ((inhibit-read-only t))
+    (let ((output-buffer (when (consp arg)
+                           (with-current-buffer
+                               (get-buffer-create "*dired-rifle*")
+                             (erase-buffer)
+                             (view-buffer-other-window
+                              (current-buffer) nil #'kill-buffer-if-not-modified)
+                             (current-buffer))))
+          (path (dired-get-filename)))
+      (cond
+       ((equal arg '(4))
+        (rifle-open path nil output-buffer))
+       ((equal arg '(16))
+        (rifle-open path
+                    (string-to-number
+                     (replace-regexp-in-string
+                      "^\\([0-9]+\\).*" "\\1"
+                      (completing-read "Rifle rule: "
+                                       (rifle-get-rules path))))
+                    output-buffer))
+       (t
+        (rifle-open path arg)))
+      (when (bufferp output-buffer)
+        (with-current-buffer output-buffer
+          (goto-char (point-min)))))))
 
 (define-key dired-mode-map (kbd "r") #'dired-rifle)
 
