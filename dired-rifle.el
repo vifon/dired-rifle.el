@@ -49,11 +49,14 @@ instead of the default one (0th)"
                         (with-current-buffer
                             (get-buffer-create "*dired-rifle*")
                           (erase-buffer)
+                          (view-buffer-other-window
+                           (current-buffer) nil #'kill-buffer-if-not-modified)
                           (current-buffer))
                       0))
         (rule-number (if (integerp arg)
                          arg
-                       0)))
+                       0))
+        (inhibit-read-only t))
     (if (equal arg '(16))
         (call-process "rifle"
                       nil out-buffer nil
