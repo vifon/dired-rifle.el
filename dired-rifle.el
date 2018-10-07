@@ -32,6 +32,22 @@
 
 (require 'dired)
 
+(defgroup dired-rifle nil
+  "Call ranger's rifle from dired."
+  :group 'dired)
+
+(defcustom rifle-config nil
+  "The path to the used rifle.conf."
+  :type '(choice
+          (const :tag "Default" nil)
+          (string :tag "Custom")))
+
+(defun rifle-args (&rest args)
+  "Return all the common args for rifle along with ARGS as a list."
+  (append (when rifle-config
+            (list "-c" (expand-file-name rifle-config)))
+          args))
+
 (defun rifle-open (path &optional program-number output-buffer)
   "Open a file with rifle(1).
 
@@ -50,10 +66,10 @@ output gets discarded."
     (view-buffer-other-window output-buffer
                               nil
                               #'kill-buffer-if-not-modified))
-  (call-process "rifle"
-                nil (or output-buffer 0) nil
-                "-p" (number-to-string (or program-number 0))
-                "--" path)
+  (apply #'call-process "rifle"
+         nil (or output-buffer 0) nil
+         (rifle-args "-p" (number-to-string (or program-number 0))
+                     "--" path))
   (when output-buffer
     (with-current-buffer output-buffer
       (goto-char (point-min)))))
@@ -61,10 +77,10 @@ output gets discarded."
 (defun rifle-get-rules (path)
   "Get the matching rifle rules for PATH as a list of strings."
   (with-temp-buffer
-    (call-process "rifle"
-                  nil (current-buffer) nil
-                  "-l"
-                  "--" path)
+    (apply #'call-process "rifle"
+           nil (current-buffer) nil
+           (rifle-args "-l"
+                       "--" path))
     (split-string (buffer-string) "\n" t)))
 
 ;;;###autoload
