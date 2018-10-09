@@ -87,35 +87,31 @@ output gets discarded."
 (defun dired-rifle (arg)
   "Call rifle(1) on the currently focused file in dired.
 
-With `\\[universal-argument]' the output is saved to a buffer
-named *dired-rifle*.
+With `\\[universal-argument]' show the matching rifle rules for
+manual selection.  The output is discarded.
 
-With `\\[universal-argument] \\[universal-argument]' show the
-matching rifle rules for manual selection.  The output is saved
-to a buffer named *dired-rifle*.
+With `\\[universal-argument] \\[universal-argument]' the output
+is additionally saved to a buffer named *dired-rifle*.
 
 With a numeric prefix argument ARG, run ARGth rifle rule instead
 of the default one (0th).  The output is discarded."
   (interactive "P")
   (let ((inhibit-read-only t))
-    (let ((output-buffer (when (consp arg)
+    (let ((output-buffer (when (equal '(16) arg)
                            "*dired-rifle*"))
           (path (dired-get-filename)))
-      (cond
-       ((equal arg '(4))
-        (rifle-open path nil output-buffer))
-       ((equal arg '(16))
+      (let ((program-number (if (consp arg)
+                                (string-to-number
+                                 (replace-regexp-in-string
+                                  "^\\([0-9]+\\).*" "\\1"
+                                  (completing-read "Rifle rule: "
+                                                   (rifle-get-rules path)
+                                                   nil
+                                                   t)))
+                              arg)))
         (rifle-open path
-                    (string-to-number
-                     (replace-regexp-in-string
-                      "^\\([0-9]+\\).*" "\\1"
-                      (completing-read "Rifle rule: "
-                                       (rifle-get-rules path)
-                                       nil
-                                       t)))
-                    output-buffer))
-       (t
-        (rifle-open path arg))))))
+                    program-number
+                    output-buffer)))))
 
 (define-key dired-mode-map (kbd "r") #'dired-rifle)
 
