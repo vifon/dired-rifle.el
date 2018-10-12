@@ -78,7 +78,7 @@ output gets discarded."
   "Get the matching rifle rules for PATH as a list of strings."
   (with-temp-buffer
     (apply #'call-process "rifle"
-           nil (current-buffer) nil
+           nil t nil
            (rifle-args "-l"
                        "--" path))
     (split-string (buffer-string) "\n" t)))
