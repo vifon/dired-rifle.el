@@ -109,6 +109,7 @@ of the default one (0th).  The output is discarded."
                                                    nil
                                                    t)))
                               arg)))
+        (message "Launching rifle...")
         (rifle-open path
                     program-number
                     output-buffer)))))
