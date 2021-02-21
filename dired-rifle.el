@@ -46,7 +46,7 @@
   "Return all the common args for rifle along with ARGS as a list."
   (append (when rifle-config
             (list "-c" (expand-file-name rifle-config)))
-          args))
+          (flatten-tree args)))
 
 (defun rifle-open (path &optional program-number output-buffer)
   "Open a file with rifle(1).
@@ -99,7 +99,7 @@ of the default one (0th).  The output is discarded."
   (let ((inhibit-read-only t))
     (let ((output-buffer (when (equal '(16) arg)
                            "*dired-rifle*"))
-          (path (dired-get-filename)))
+          (path (dired-get-marked-files)))
       (let ((program-number (if (consp arg)
                                 (string-to-number
                                  (replace-regexp-in-string
