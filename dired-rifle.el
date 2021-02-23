@@ -42,11 +42,20 @@
           (const :tag "Default" nil)
           (string :tag "Custom")))
 
+(defcustom dired-rifle-use-marked-files nil
+  "If non-nil, dired-rifle will work on marked files instead of the
+file under point. But 'file under point' will be used as fallback, if
+there are no marked files"
+  :type '(choice
+	  (const :tag "single-file" nil)
+	  (const :tag "marked-files" t))
+  )
+
 (defun rifle-args (&rest args)
   "Return all the common args for rifle along with ARGS as a list."
   (append (when rifle-config
             (list "-c" (expand-file-name rifle-config)))
-          args))
+          (flatten-tree args)))
 
 (defun rifle-open (path &optional program-number output-buffer)
   "Open a file with rifle(1).
@@ -99,7 +108,11 @@ of the default one (0th).  The output is discarded."
   (let ((inhibit-read-only t))
     (let ((output-buffer (when (equal '(16) arg)
                            "*dired-rifle*"))
-          (path (dired-get-filename)))
+          (path (if (or (and (equal arg 0) (not dired-rifle-use-marked-files))
+			(and (not (equal arg 0)) dired-rifle-use-marked-files))
+		    (dired-get-marked-files)
+		  (dired-get-filename)
+		  )))
       (let ((program-number (if (consp arg)
                                 (string-to-number
                                  (replace-regexp-in-string
@@ -109,7 +122,7 @@ of the default one (0th).  The output is discarded."
                                                    nil
                                                    t)))
                               arg)))
-        (message "Launching rifle...")
+        (message "Launching rifle with %s..." path)
         (rifle-open path
                     program-number
                     output-buffer)))))
