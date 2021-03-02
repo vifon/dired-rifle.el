@@ -47,8 +47,8 @@
 file under point. But 'file under point' will be used as fallback, if
 there are no marked files"
   :type '(choice
-	  (const :tag "single-file" nil)
-	  (const :tag "marked-files" t))
+          (const :tag "single-file" nil)
+          (const :tag "marked-files" t))
   )
 
 (defun rifle-args (&rest args)
@@ -111,25 +111,23 @@ With 0 as numeric argument, switch between focused file and marked files."
   (let ((inhibit-read-only t))
     (let ((output-buffer (when (equal '(16) arg)
                            "*dired-rifle*"))
-          (path (if (or (and (equal arg 0) (not dired-rifle-use-marked-files))
-			(and (not (equal arg 0)) dired-rifle-use-marked-files))
-		    (dired-get-marked-files)
-		  (dired-get-filename)
-		  )))
+          (path (if (equal (equal arg 0) dired-rifle-use-marked-files)
+                    (dired-get-filename)
+                  (dired-get-marked-files))))
       (dolist (p (flatten-tree path))
-	(let ((program-number (if (consp arg)
-				  (string-to-number
-				   (replace-regexp-in-string
-				    "^\\([0-9]+\\).*" "\\1"
-				    (completing-read "Rifle rule: "
-						     (rifle-get-rules p)
-						     nil
-						     t)))
-				arg)))
-	  (message "Launching rifle...")
-	  (rifle-open p
-		      program-number
-		      output-buffer))))))
+        (let ((program-number (if (consp arg)
+                                  (string-to-number
+                                   (replace-regexp-in-string
+                                    "^\\([0-9]+\\).*" "\\1"
+                                    (completing-read "Rifle rule: "
+                                                     (rifle-get-rules p)
+                                                     nil
+                                                     t)))
+                                arg)))
+          (message "Launching rifle...")
+          (rifle-open p
+                      program-number
+                      output-buffer))))))
 
 (define-key dired-mode-map (kbd "r") #'dired-rifle)
 
