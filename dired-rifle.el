@@ -43,13 +43,14 @@
           (string :tag "Custom")))
 
 (defcustom dired-rifle-use-marked-files nil
-  "If non-nil, dired-rifle will work on marked files instead of the
-file under point. But 'file under point' will be used as fallback, if
+  "Pass all the marked files to rifle by default.
+
+If non-nil, `dired-rifle' will work on marked files instead of the
+file under point.  But 'file under point' will be used as fallback, if
 there are no marked files"
   :type '(choice
           (const :tag "single-file" nil)
-          (const :tag "marked-files" t))
-  )
+          (const :tag "marked-files" t)))
 
 (defun rifle-args (&rest args)
   "Return all the common args for rifle along with ARGS as a list."
