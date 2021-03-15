@@ -56,12 +56,12 @@ there are no marked files"
   "Return all the common args for rifle along with ARGS as a list."
   (append (when rifle-config
             (list "-c" (expand-file-name rifle-config)))
-          (flatten-tree args)))
+          args))
 
-(defun rifle-open (path &optional program-number output-buffer)
+(defun rifle-open (file-paths &optional program-number output-buffer)
   "Open a file with rifle(1).
 
-PATH is the file to open.
+FILE-PATHS is the file to open.
 
 PROGRAM-NUMBER is the argument passed to `rifle -p', i.e. which
 of the matching rules to use.
@@ -78,8 +78,8 @@ output gets discarded."
                               #'kill-buffer-if-not-modified))
   (apply #'call-process "rifle"
          nil (or output-buffer 0) nil
-         (rifle-args "-p" (number-to-string (or program-number 0))
-                     "--" path))
+         (apply #'rifle-args "-p" (number-to-string (or program-number 0))
+                "--" file-paths))
   (when output-buffer
     (with-current-buffer output-buffer
       (goto-char (point-min)))))
@@ -112,23 +112,22 @@ With 0 as numeric argument, switch between focused file and marked files."
   (let ((inhibit-read-only t))
     (let ((output-buffer (when (equal '(16) arg)
                            "*dired-rifle*"))
-          (path (if (equal (equal arg 0) dired-rifle-use-marked-files)
-                    (dired-get-filename)
-                  (dired-get-marked-files))))
-      (dolist (p (flatten-tree path))
-        (let ((program-number (if (consp arg)
-                                  (string-to-number
-                                   (replace-regexp-in-string
-                                    "^\\([0-9]+\\).*" "\\1"
-                                    (completing-read "Rifle rule: "
-                                                     (rifle-get-rules p)
-                                                     nil
-                                                     t)))
-                                arg)))
-          (message "Launching rifle...")
-          (rifle-open p
-                      program-number
-                      output-buffer))))))
+          (file-paths (if (equal (equal arg 0) dired-rifle-use-marked-files)
+                          (list (dired-get-filename))
+                        (dired-get-marked-files))))
+      (let ((program-number (if (consp arg)
+                                (string-to-number
+                                 (replace-regexp-in-string
+                                  "^\\([0-9]+\\).*" "\\1"
+                                  (completing-read "Rifle rule: "
+                                                   (rifle-get-rules (car file-paths))
+                                                   nil
+                                                   t)))
+                              arg)))
+        (message "Launching rifle...")
+        (rifle-open file-paths
+                    program-number
+                    output-buffer)))))
 
 (define-key dired-mode-map (kbd "r") #'dired-rifle)
 
