@@ -42,16 +42,26 @@
           (const :tag "Default" nil)
           (string :tag "Custom")))
 
+(defcustom dired-rifle-use-marked-files nil
+  "Pass all the marked files to rifle by default.
+
+If non-nil, `dired-rifle' will work on marked files instead of the
+file under point.  But 'file under point' will be used as fallback, if
+there are no marked files"
+  :type '(choice
+          (const :tag "single-file" nil)
+          (const :tag "marked-files" t)))
+
 (defun rifle-args (&rest args)
   "Return all the common args for rifle along with ARGS as a list."
   (append (when rifle-config
             (list "-c" (expand-file-name rifle-config)))
           args))
 
-(defun rifle-open (path &optional program-number output-buffer)
+(defun rifle-open (file-paths &optional program-number output-buffer)
   "Open a file with rifle(1).
 
-PATH is the file to open.
+FILE-PATHS is the file to open.
 
 PROGRAM-NUMBER is the argument passed to `rifle -p', i.e. which
 of the matching rules to use.
@@ -68,8 +78,8 @@ output gets discarded."
                               #'kill-buffer-if-not-modified))
   (apply #'call-process "rifle"
          nil (or output-buffer 0) nil
-         (rifle-args "-p" (number-to-string (or program-number 0))
-                     "--" path))
+         (apply #'rifle-args "-p" (number-to-string (or program-number 0))
+                "--" file-paths))
   (when output-buffer
     (with-current-buffer output-buffer
       (goto-char (point-min)))))
@@ -85,7 +95,8 @@ output gets discarded."
 
 ;;;###autoload
 (defun dired-rifle (arg)
-  "Call rifle(1) on the currently focused file in dired.
+  "Call rifle(1) on the currently focused file in dired, or the
+marked files, depending on the value of `dired-rifle-use-marked-files'
 
 With `\\[universal-argument]' show the matching rifle rules for
 manual selection.  The output is discarded.
@@ -94,23 +105,27 @@ With `\\[universal-argument] \\[universal-argument]' the output
 is additionally saved to a buffer named *dired-rifle*.
 
 With a numeric prefix argument ARG, run ARGth rifle rule instead
-of the default one (0th).  The output is discarded."
+of the default one (0th).  The output is discarded.
+
+With 0 as numeric argument, switch between focused file and marked files."
   (interactive "P")
   (let ((inhibit-read-only t))
     (let ((output-buffer (when (equal '(16) arg)
                            "*dired-rifle*"))
-          (path (dired-get-filename)))
+          (file-paths (if (equal (equal arg 0) dired-rifle-use-marked-files)
+                          (list (dired-get-filename))
+                        (dired-get-marked-files))))
       (let ((program-number (if (consp arg)
                                 (string-to-number
                                  (replace-regexp-in-string
                                   "^\\([0-9]+\\).*" "\\1"
                                   (completing-read "Rifle rule: "
-                                                   (rifle-get-rules path)
+                                                   (rifle-get-rules (car file-paths))
                                                    nil
                                                    t)))
                               arg)))
         (message "Launching rifle...")
-        (rifle-open path
+        (rifle-open file-paths
                     program-number
                     output-buffer)))))
 
