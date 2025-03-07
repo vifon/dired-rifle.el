@@ -69,9 +69,7 @@ of the matching rules to use.
 OUTPUT-BUFFER is the buffer for the rifle output.  If nil, the
 output gets discarded."
   (when output-buffer
-    (with-current-buffer
-        (get-buffer-create "*dired-rifle*")
-      (current-buffer)
+    (with-current-buffer (get-buffer-create output-buffer)
       (erase-buffer))
     (view-buffer-other-window output-buffer
                               nil
