@@ -11,5 +11,11 @@
 
 ** Usage
 
+   Bind a key in `dired-mode-map` (for example <kbd>r</kbd>):
+
+   #+BEGIN_EXAMPLE
+     (define-key dired-mode-map (kbd "r") #'dired-rifle)
+   #+END_EXAMPLE
+
    Press =r= to open the current file.  See the =dired-rifle= command
    documentation for more running options.

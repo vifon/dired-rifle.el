@@ -129,7 +129,5 @@ With 0 as numeric argument, switch between focused file and marked files."
                     program-number
                     output-buffer)))))
 
-(define-key dired-mode-map (kbd "r") #'dired-rifle)
-
 (provide 'dired-rifle)
 ;;; dired-rifle.el ends here
